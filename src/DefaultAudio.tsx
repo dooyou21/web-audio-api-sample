@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useRef, useState } from 'react';
 import { AudioVisualizer } from './AudioVisualizer';
 import outfoxing from './outfoxing.mp3';
@@ -8,8 +9,11 @@ export function DefaultAudio() {
   const [stream, setStream] = useState(null);
 
   const handlePlay = () => {
-    // @ts-ignore
-    setStream(audioRef.current.captureStream());
+    if (audioRef.current) {
+      if (audioRef.current.captureStream) {
+        setStream(audioRef.current.captureStream());
+      }
+    }
   };
 
   return (
