@@ -5,7 +5,6 @@ import outfoxing from './outfoxing.mp3';
 export function DefaultAudio() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // @ts-ignore
   const [stream, setStream] = useState(null);
 
   const handlePlay = () => {
