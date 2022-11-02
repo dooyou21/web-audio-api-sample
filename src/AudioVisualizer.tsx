@@ -7,19 +7,11 @@ import React, {
   useState,
 } from 'react';
 
-type VisualizeViewMode = 'bar' | 'line';
-
 const WIDTH = 300;
 const HEIGHT = 150;
 
 export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
-  const [viewMode, setViewMode] = useState<VisualizeViewMode>('line');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const handleChangeOption = (e: ChangeEvent<HTMLSelectElement>) => {
-    if (e.target.value === 'bar' || e.target.value === 'line') {
-      setViewMode(e.target.value);
-    }
-  };
 
   useEffect(() => {
     if (!stream) {
@@ -32,15 +24,11 @@ export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
     source.connect(analyser);
 
     analyser.connect(audioCtx.destination);
-    // const volumeAnalyseNode = new AudioWorkletNode(
-    //   audioCtx,
-    //   'volume-percentage-processor',
-    // );
-    // volumeAnalyseNode.connect(audioCtx.destination);
 
     analyser.fftSize = 2048;
-    var bufferLength = analyser.frequencyBinCount;
-    var dataArray = new Uint8Array(bufferLength);
+    const bufferLength = analyser.frequencyBinCount;
+    const timeDomainDataArray = new Uint8Array(bufferLength);
+    const frequencyDataArray = new Uint8Array(bufferLength);
 
     if (!canvasRef.current) {
       return;
@@ -56,10 +44,26 @@ export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
 
     const draw = () => {
       const drawVisual = requestAnimationFrame(draw);
-      analyser.getByteTimeDomainData(dataArray);
+      analyser.getByteTimeDomainData(timeDomainDataArray);
+      analyser.getByteFrequencyData(frequencyDataArray);
 
-      canvasContext.fillStyle = 'rgb(200, 200, 200)';
-      canvasContext.fillRect(0, 0, WIDTH, HEIGHT);
+      canvasContext.clearRect(0, 0, WIDTH, HEIGHT);
+
+      const arraySum = frequencyDataArray.reduce((a, value) => {
+        return a + value;
+      }, 0);
+      const average = arraySum / frequencyDataArray.length;
+
+      canvasContext.fillStyle = 'lightgreen';
+      canvasContext.fillRect(
+        0,
+        HEIGHT - Math.round((average / 100) * HEIGHT),
+        WIDTH,
+        Math.round((average / 100) * HEIGHT),
+      );
+
+      // canvasContext.fillStyle = 'rgb(200, 200, 200)';
+      // canvasContext.fillRect(0, 0, WIDTH, HEIGHT);
       canvasContext.lineWidth = 2;
       canvasContext.strokeStyle = 'rgb(0, 40, 50)';
       canvasContext.beginPath();
@@ -69,7 +73,7 @@ export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
 
       let x = 0;
       for (let i = 0; i < bufferLength; i++) {
-        let v = dataArray[i] / 128.0;
+        let v = timeDomainDataArray[i] / 128.0;
         let y = (v * HEIGHT) / 2;
         canvasContext.lineTo(x, y);
         x += sliceWidth;
@@ -84,25 +88,12 @@ export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
 
   return (
     <div>
-      <div>
-        <label>
-          view mode:{' '}
-          <select onChange={handleChangeOption} value={viewMode}>
-            <option value="line">line</option>
-            <option value="bar">bar</option>
-          </select>
-        </label>
-      </div>
-      <div>
-        {viewMode === 'line' && (
-          <canvas
-            className="video-visualize-canvas"
-            ref={canvasRef}
-            width={WIDTH}
-            height={HEIGHT}
-          />
-        )}
-      </div>
+      <canvas
+        className="video-visualize-canvas"
+        ref={canvasRef}
+        width={WIDTH}
+        height={HEIGHT}
+      />
     </div>
   );
 }
