@@ -27,11 +27,16 @@ export function AudioVisualizer({ stream }: { stream: MediaStream | null }) {
     }
 
     const audioCtx = new window.AudioContext();
-    var analyser = audioCtx.createAnalyser();
-
+    const analyser = audioCtx.createAnalyser();
     const source = audioCtx.createMediaStreamSource(stream);
     source.connect(analyser);
+
     analyser.connect(audioCtx.destination);
+    // const volumeAnalyseNode = new AudioWorkletNode(
+    //   audioCtx,
+    //   'volume-percentage-processor',
+    // );
+    // volumeAnalyseNode.connect(audioCtx.destination);
 
     analyser.fftSize = 2048;
     var bufferLength = analyser.frequencyBinCount;
