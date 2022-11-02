@@ -7,10 +7,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h2>Default</h2>
+        <h2>Audio</h2>
         <DefaultAudio />
-        <h2>Auto-Tuned</h2>
-        <AutoTunedAudio />
+        {/* <h2>Auto-Tuned</h2>
+        <AutoTunedAudio /> */}
       </header>
     </div>
   );
